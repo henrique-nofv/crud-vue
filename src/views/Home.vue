@@ -19,7 +19,7 @@
         xl='4'
       >
         <router-link tag="span" :to="`/user/${user._id}`">
-          <card-user class='card-pointer' />
+          <card-user :user="user" class='card-pointer' />
         </router-link>
       </v-col>
     </v-container>
