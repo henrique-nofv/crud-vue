@@ -1,4 +1,4 @@
-/* eslint no-underscore-dangle: ["error", { "allow": ["_id"] }] */
+/* eslint-disable */ 
 import Vue from 'vue';
 import Vuex from 'vuex';
 import Axios from 'axios';
@@ -39,6 +39,31 @@ export default new Vuex.Store({
     setUser(state, payload) {
       state.user = payload;
     },
+    resetUserState(state) {
+      state.user = {
+        birthdate: '',
+        companyName: '',
+        typePerson: '',
+        genre: '',
+        phoneFixed: '',
+        phoneMobile: '',
+        photo: '',
+        email: '',
+        name: '',
+        cpfCnpj: '',
+        fullAddress: [
+          {
+            cep: '',
+            city: '',
+            complement: '',
+            number: '',
+            neighborhood: '',
+            address: '',
+            state: '',
+          },
+        ],
+      };
+    },
   },
   actions: {
     async getUsers({ commit }) {
@@ -51,8 +76,13 @@ export default new Vuex.Store({
 
       commit('setUser', response.data);
     },
-    updateUser({ commit }, user) {
-      commit('');
+    createUser({ }, user) {
+      return Axios.post('https://jsonbox.io/box_6fb739a95b26f569cee2/', user);
+    },
+    deleteUser({ }, { _id }) {
+      return Axios.delete(`https://jsonbox.io/box_6fb739a95b26f569cee2/${_id}`);
+    },
+    updateUser({ }, user) {
       return Axios.put(`https://jsonbox.io/box_6fb739a95b26f569cee2/${user._id}`, user);
     },
   },

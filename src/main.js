@@ -1,4 +1,5 @@
 import Vue from 'vue';
+import VueSimpleAlert from 'vue-simple-alert';
 import './plugins/axios';
 import App from './App.vue';
 import './registerServiceWorker';
@@ -8,6 +9,8 @@ import vuetify from './plugins/vuetify';
 import './assets/scss/reset.scss';
 
 Vue.config.productionTip = false;
+
+Vue.use(VueSimpleAlert);
 
 new Vue({
   router,

@@ -2,13 +2,14 @@
   <div>
     <header-component title='Henrique Noronha Favorette'>
       <template v-slot:headLine>
-        <router-link tag='span' class="ml-n3" to='/'>
-          <v-btn color='primary' small text> Voltar </v-btn>
+        <router-link tag='span' class='ml-n3' to='/'>
+          <v-btn :loading='loading' color='primary' small text> Voltar </v-btn>
         </router-link>
       </template>
       <template v-slot:actions>
         <v-row v-if='isDetailUser' class='mt-3 mb-1 flex-row-reverse'>
           <v-btn
+            :loading='loading'
             v-if='readOnlyMode'
             depressed
             max-width='150px'
@@ -17,6 +18,7 @@
             >Editar</v-btn
           >
           <v-btn
+            :loading='loading'
             v-else
             depressed
             max-width='150px'
@@ -24,7 +26,14 @@
             @click='updateUser'
             >Atualizar</v-btn
           >
-          <v-btn depressed max-width='150px' class='error mr-3'>Excluir</v-btn>
+          <v-btn
+            :loading='loading'
+            depressed
+            max-width='150px'
+            @click='removeUser'
+            class='error mr-3'
+            >Excluir</v-btn
+          >
         </v-row>
       </template>
     </header-component>
@@ -59,59 +68,52 @@
             <v-text-field
               :readonly='readOnlyMode'
               v-model='user.name'
-              :rules='nameRules'
               label='Nome *'
               required
             ></v-text-field>
 
             <v-text-field
               v-model='user.email'
-              :rules='emailRules'
               label='Email'
               required
               :readonly='readOnlyMode'
             ></v-text-field>
             <v-select
               v-model='user.typePerson'
-              :items='typePerson'
-              :rules='[(v) => !!v || `Item is required`]'
+              :items='typePersonList'
               label='Tipo'
               required
               :readonly='readOnlyMode'
             ></v-select>
 
             <v-text-field
-              v-if='select'
+              v-if='user.typePerson'
               v-model='user.cpfCnpj'
-              :rules='emailRules'
-              :label='select == `Pessoa física` ? `Cpf` : `Cnpj`'
+              :label='user.typePerson == `Pessoa física` ? `Cpf` : `Cnpj`'
               required
               :readonly='readOnlyMode'
             ></v-text-field>
 
             <v-select
-              v-if='select == `Pessoa física`'
+              v-if='user.typePerson == `Pessoa física`'
               v-model='user.genre'
               :items='genreList'
-              :rules='[(v) => !!v || `Item is required`]'
               label='Genêro'
               required
               :readonly='readOnlyMode'
             ></v-select>
 
             <v-text-field
-              v-if='select == `Pessoa física`'
+              v-if='user.typePerson == `Pessoa física`'
               v-model='user.birthdate'
-              :rules='emailRules'
               label='Data de nascimento'
               required
               :readonly='readOnlyMode'
             ></v-text-field>
 
             <v-text-field
-              v-if='select == `Pessoa jurídica`'
+              v-if='user.typePerson == `Pessoa jurídica`'
               v-model='user.companyName'
-              :rules='emailRules'
               label='Razão social'
               required
               :readonly='readOnlyMode'
@@ -185,11 +187,25 @@
                 :readonly='readOnlyMode'
               ></v-text-field>
             </div>
-            <v-btn color='primary' @click='addAddress' small text>
+            <v-btn
+              :loading='loading'
+              color='primary'
+              @click='addAddress'
+              small
+              text
+            >
               + Endereço
             </v-btn>
           </v-form>
-          <v-btn class="success">Cadastrar</v-btn>
+          <v-row class='flex-row-reverse'>
+            <v-btn
+              :loading='loading'
+              v-if='!isDetailUser'
+              class='success'
+              @click='createUser'
+              >Cadastrar</v-btn
+            >
+          </v-row>
         </v-col>
       </v-row>
     </v-container>
@@ -213,7 +229,9 @@ export default {
   data: () => ({
     readOnlyMode: false,
     valid: true,
-    typePerson: ['Pessoa física', 'Pessoa jurídica'],
+    loading: false,
+    typePerson: '',
+    typePersonList: ['Pessoa física', 'Pessoa jurídica'],
     genreList: ['Feminino', 'Masculino'],
     nameRules: [
       (v) => !!v || 'Name is required',
@@ -240,16 +258,80 @@ export default {
     },
   },
   beforeDestroy() {
-    this.$store.commit('setUser', {});
+    this.$store.commit('resetUserState');
   },
   methods: {
+    async removeUser() {
+      const response = await this.$fire({
+        title: 'Remover',
+        cancelButtonText: 'Cancelar',
+        text: `Tem certeza que deseja excluir o usuário ${this.user.name}?`,
+        showCancelButton: true,
+      });
+
+      if (response.value) {
+        this.loading = true;
+        await this.$store.dispatch('deleteUser', this.user);
+
+        this.$fire({
+          title: 'Successo',
+          text: `Usuário ${this.user.name} removido com sucesso!`,
+          type: 'success',
+          timer: 3000,
+        }).then(() => window.location.assign('/'));
+      }
+
+      this.loading = false;
+    },
     edit() {
       this.readOnlyMode = false;
     },
-    updateUser() {
-      this.readOnlyMode = true;
+    async createUser() {
+      this.loading = true;
 
-      this.$store.dispatch('updateUser', this.user);
+      const response = await this.$store.dispatch('createUser', this.user);
+
+      if (response.status === 200) {
+        this.$fire({
+          title: 'Criado',
+          text: `Usuário ${response.data.name} criado com sucesso!`,
+          type: 'success',
+          timer: 3000,
+        }).then(() => window.location.assign('/'));
+      } else {
+        this.$fire({
+          title: 'Erro',
+          text: 'Falha ao criar usuário!',
+          type: 'error',
+          timer: 3000,
+        });
+      }
+
+      this.loading = false;
+    },
+    async updateUser() {
+      this.readOnlyMode = true;
+      this.loading = true;
+
+      const response = await this.$store.dispatch('updateUser', this.user);
+
+      if (response.status === 200) {
+        this.$fire({
+          title: 'Atualizado',
+          text: `Usuário ${this.user.name} atualizado com sucesso!`,
+          type: 'success',
+          timer: 3000,
+        }).then(() => window.location.assign('/'));
+      } else {
+        this.$fire({
+          title: 'Erro',
+          text: 'Falha ao atualizar usuário!',
+          type: 'error',
+          timer: 3000,
+        });
+      }
+
+      this.loading = false;
     },
     addAddress() {
       this.user.fullAddress.push({
