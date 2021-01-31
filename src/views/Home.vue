@@ -4,7 +4,7 @@
       <template v-slot:actions>
           <router-link tag="span" to="/user">
             <v-btn depressed max-width='150px' class='success'>
-                Novo cliente
+                Novo usuário
             </v-btn>
           </router-link>
       </template>

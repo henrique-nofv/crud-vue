@@ -85,6 +85,9 @@ export default new Vuex.Store({
     updateUser({ }, user) {
       return Axios.put(`https://jsonbox.io/box_6fb739a95b26f569cee2/${user._id}`, user);
     },
+    getAddressByCep({ }, cep) {
+      return Axios.get(`https://viacep.com.br/ws/${cep}/json/`)
+    },
   },
   getters: {
 

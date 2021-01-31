@@ -1,9 +1,12 @@
 <template>
   <div>
-    <header-component title='Henrique Noronha Favorette'>
+    <header-component :title='user.name.length > 2 ? user.name : `Novo usuário`'>
       <template v-slot:headLine>
         <router-link tag='span' class='ml-n3' to='/'>
-          <v-btn :loading='loading' color='primary' small text> Voltar </v-btn>
+          <v-btn color='primary' small text>
+            <v-icon>mdi-chevron-left</v-icon>
+            Voltar
+          </v-btn>
         </router-link>
       </template>
       <template v-slot:actions>
@@ -139,14 +142,15 @@
 
             <div
               v-for='(address, index) in user.fullAddress'
-              :key='address.cep + index'
+              :key='index'
             >
               <h1 class='headline mt-5'>Endereço</h1>
 
               <v-divider class='mb-5' />
 
               <v-text-field
-                v-model.lazy='address.cep'
+                @blur="findCep(address.cep, index)"
+                v-model='address.cep'
                 label='Cep'
                 :readonly='readOnlyMode'
               ></v-text-field>
@@ -189,6 +193,7 @@
             </div>
             <v-btn
               :loading='loading'
+              class="mb-7"
               color='primary'
               @click='addAddress'
               small
@@ -201,7 +206,7 @@
             <v-btn
               :loading='loading'
               v-if='!isDetailUser'
-              class='success'
+              class='success mb-7'
               @click='createUser'
               >Cadastrar</v-btn
             >
@@ -261,6 +266,18 @@ export default {
     this.$store.commit('resetUserState');
   },
   methods: {
+    async findCep(cep, index) {
+      try {
+        const response = await this.$store.dispatch('getAddressByCep', cep);
+
+        this.user.fullAddress[index].address = response.data.logradouro;
+        this.user.fullAddress[index].neighborhood = response.data.bairro;
+        this.user.fullAddress[index].city = response.data.localidade;
+        this.user.fullAddress[index].state = response.data.uf;
+      } catch (error) {
+        console.log('Falha ao buscar cep');
+      }
+    },
     async removeUser() {
       const response = await this.$fire({
         title: 'Remover',
