@@ -72,30 +72,56 @@
               :readonly='readOnlyMode'
               v-model='user.name'
               label='Nome *'
-              required
+              :rules="requiredRules"
             ></v-text-field>
 
             <v-text-field
               v-model='user.email'
               label='Email'
-              required
+              :rules="user.email.length >= 1 ? emailRules : ''"
               :readonly='readOnlyMode'
             ></v-text-field>
+
             <v-select
               v-model='user.typePerson'
               :items='typePersonList'
               label='Tipo'
               required
+              :rules="requiredRules"
               :readonly='readOnlyMode'
             ></v-select>
 
-            <v-text-field
-              v-if='user.typePerson'
+            <v-text-field-cpf
+              v-if="user.typePerson == `Pessoa física`"
               v-model='user.cpfCnpj'
-              :label='user.typePerson == `Pessoa física` ? `Cpf` : `Cnpj`'
-              required
-              :readonly='readOnlyMode'
-            ></v-text-field>
+              v-bind:label="user.typePerson == `Pessoa física` ? `Cpf` : `Cnpj`"
+              v-bind:properties="{
+                required: true,
+                readonly: readOnlyMode,
+                rules: user.typePerson == `Pessoa física` ? requiredRules : '',
+              }"
+              v-bind:options="{
+                outputMask: '###.###.###-##',
+                empty: null,
+                applyAfter: true,
+              }"
+            />
+
+            <v-text-field-cnpj
+              v-if="user.typePerson == `Pessoa jurídica`"
+              v-model='user.cpfCnpj'
+              v-bind:label="`Cnpj`"
+              v-bind:properties="{
+                required: true,
+                readonly: readOnlyMode,
+                rules: user.typePerson == `Pessoa jurídica` ? requiredRules : '',
+              }"
+              v-bind:options="{
+                outputMask: '##.###.###/####-##',
+                empty: null,
+                applyAfter: true,
+              }"
+            />
 
             <v-select
               v-if='user.typePerson == `Pessoa física`'
@@ -103,21 +129,31 @@
               :items='genreList'
               label='Genêro'
               required
+              :rules="user.typePerson == `Pessoa física` ? requiredRules : ''"
               :readonly='readOnlyMode'
             ></v-select>
 
-            <v-text-field
+            <v-text-field-datetime
               v-if='user.typePerson == `Pessoa física`'
               v-model='user.birthdate'
-              label='Data de nascimento'
-              required
-              :readonly='readOnlyMode'
-            ></v-text-field>
+              v-bind:label="`Data de nascimento`"
+              v-bind:properties="{
+                readonly: readOnlyMode,
+                required: true,
+                rules: user.typePerson == `Pessoa física` ? requiredRules : '',
+                'prepend-icon': 'mdi-calendar',
+              }"
+              v-bind:options="{
+                inputMask: 'DD/MM/YYYY',
+                empty: null,
+              }"
+            />
 
             <v-text-field
               v-if='user.typePerson == `Pessoa jurídica`'
               v-model='user.companyName'
               label='Razão social'
+              :rules="user.typePerson == `Pessoa jurídica` ? requiredRules : ''"
               required
               :readonly='readOnlyMode'
             ></v-text-field>
@@ -147,23 +183,28 @@
               <h1 class='headline mt-5'>Endereço</h1>
 
               <v-divider class='mb-5' />
-
-              <v-text-field
-                @blur="findCep(address.cep, index)"
+              <v-text-field-cep
+                @blur='findCep(address.cep, index)'
                 v-model='address.cep'
-                label='Cep'
-                :readonly='readOnlyMode'
-              ></v-text-field>
-
+                v-bind:label='`Cep`'
+                v-bind:readonly="readOnlyMode"
+                v-bind:options='{
+                  outputMask: `#####-###`,
+                  empty: null,
+                  applyAfter: true,
+                }'
+              />
               <v-text-field
                 v-model.lazy='address.address'
                 label='Endereço'
+                :rules="requiredRules"
                 :readonly='readOnlyMode'
               ></v-text-field>
 
               <v-text-field
                 v-model.lazy='address.number'
                 label='Número'
+                :rules="requiredRules"
                 :readonly='readOnlyMode'
               ></v-text-field>
 
@@ -182,18 +223,20 @@
               <v-text-field
                 v-model.lazy='address.city'
                 label='Cidade'
+                :rules="requiredRules"
                 :readonly='readOnlyMode'
               ></v-text-field>
 
               <v-text-field
                 v-model.lazy='address.state'
                 label='Estado'
+                :rules="requiredRules"
                 :readonly='readOnlyMode'
               ></v-text-field>
             </div>
             <v-btn
               :loading='loading'
-              class="mb-7"
+              class='mb-7'
               color='primary'
               @click='addAddress'
               small
@@ -238,13 +281,11 @@ export default {
     typePerson: '',
     typePersonList: ['Pessoa física', 'Pessoa jurídica'],
     genreList: ['Feminino', 'Masculino'],
-    nameRules: [
-      (v) => !!v || 'Name is required',
-      (v) => (v && v.length <= 10) || 'Name must be less than 10 characters',
+    requiredRules: [
+      (v) => !!v || 'Campo obrigatório!',
     ],
     emailRules: [
-      (v) => !!v || 'E-mail is required',
-      (v) => /.+@.+\..+/.test(v) || 'E-mail must be valid',
+      (v) => /.+@.+\..+/.test(v) || 'Email inválido!',
     ],
     select: null,
   }),
@@ -304,27 +345,31 @@ export default {
       this.readOnlyMode = false;
     },
     async createUser() {
-      this.loading = true;
+      const isValidForm = this.$refs.form.validate();
 
-      const response = await this.$store.dispatch('createUser', this.user);
+      if (isValidForm) {
+        this.loading = true;
 
-      if (response.status === 200) {
-        this.$fire({
-          title: 'Criado',
-          text: `Usuário ${response.data.name} criado com sucesso!`,
-          type: 'success',
-          timer: 3000,
-        }).then(() => window.location.assign('/'));
-      } else {
-        this.$fire({
-          title: 'Erro',
-          text: 'Falha ao criar usuário!',
-          type: 'error',
-          timer: 3000,
-        });
+        const response = await this.$store.dispatch('createUser', this.user);
+
+        if (response.status === 200) {
+          this.$fire({
+            title: 'Criado',
+            text: `Usuário ${response.data.name} criado com sucesso!`,
+            type: 'success',
+            timer: 3000,
+          }).then(() => window.location.assign('/'));
+        } else {
+          this.$fire({
+            title: 'Erro',
+            text: 'Falha ao criar usuário!',
+            type: 'error',
+            timer: 3000,
+          });
+        }
+
+        this.loading = false;
       }
-
-      this.loading = false;
     },
     async updateUser() {
       this.readOnlyMode = true;

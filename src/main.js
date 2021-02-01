@@ -1,6 +1,7 @@
 import Vue from 'vue';
 import VueSimpleAlert from 'vue-simple-alert';
 import './plugins/axios';
+import './plugins/vuetify-mask';
 import App from './App.vue';
 import './registerServiceWorker';
 import router from './router';
