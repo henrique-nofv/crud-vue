@@ -15,7 +15,7 @@
         size="80"
         color="grey"
       >
-      <v-img :src="user.photo.length >= 3 ? user.photo : 'https://ciclesradar.com.br/images/sem_foto.png'"></v-img>
+        <v-img :src="user.photo.length >= 3 ? user.photo : 'https://ciclesradar.com.br/images/sem_foto.png'"></v-img>
       </v-list-item-avatar>
     </v-list-item>
   </v-card>
