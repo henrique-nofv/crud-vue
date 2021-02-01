@@ -46,7 +46,7 @@
           <v-img
             alt='Foto do usuário'
             max-height='400px'
-            src='https://ciclesradar.com.br/images/sem_foto.png'
+            :src='user.photo.length >= 2 ? user.photo : https://ciclesradar.com.br/images/sem_foto.png'
           />
         </v-col>
         <v-col cols='1'>
