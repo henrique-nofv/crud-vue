@@ -85,7 +85,7 @@
             <v-select
               v-model='user.typePerson'
               :items='typePersonList'
-              label='Tipo'
+              label='Tipo *'
               required
               :rules="requiredRules"
               :readonly='readOnlyMode'
@@ -94,14 +94,15 @@
             <v-text-field-cpf
               v-if="user.typePerson == `Pessoa física`"
               v-model='user.cpfCnpj'
-              v-bind:label="user.typePerson == `Pessoa física` ? `Cpf` : `Cnpj`"
+              v-bind:label="user.typePerson == `Pessoa física` ? `Cpf *` : `Cnpj *`"
               v-bind:properties="{
                 required: true,
                 readonly: readOnlyMode,
                 rules: user.typePerson == `Pessoa física` ? requiredRules : '',
               }"
               v-bind:options="{
-                outputMask: '###.###.###-##',
+                inputMask: '###.###.###-##',
+                outputMask: '###########',
                 empty: null,
                 applyAfter: true,
               }"
@@ -117,7 +118,8 @@
                 rules: user.typePerson == `Pessoa jurídica` ? requiredRules : '',
               }"
               v-bind:options="{
-                outputMask: '##.###.###/####-##',
+                inputMask: '##.###.###/####-##',
+                outputMask: '##############',
                 empty: null,
                 applyAfter: true,
               }"
@@ -127,7 +129,7 @@
               v-if='user.typePerson == `Pessoa física`'
               v-model='user.genre'
               :items='genreList'
-              label='Genêro'
+              label='Genêro *'
               required
               :rules="user.typePerson == `Pessoa física` ? requiredRules : ''"
               :readonly='readOnlyMode'
@@ -136,7 +138,7 @@
             <v-text-field-datetime
               v-if='user.typePerson == `Pessoa física`'
               v-model='user.birthdate'
-              v-bind:label="`Data de nascimento`"
+              v-bind:label="`Data de nascimento *`"
               v-bind:properties="{
                 readonly: readOnlyMode,
                 required: true,
@@ -152,23 +154,31 @@
             <v-text-field
               v-if='user.typePerson == `Pessoa jurídica`'
               v-model='user.companyName'
-              label='Razão social'
+              label='Razão social *'
               :rules="user.typePerson == `Pessoa jurídica` ? requiredRules : ''"
               required
               :readonly='readOnlyMode'
             ></v-text-field>
 
-            <v-text-field
+            <v-text-field-simplemask
               v-model='user.phoneFixed'
-              label='Telefone fixo'
-              :readonly='readOnlyMode'
-            ></v-text-field>
+              v-bind:label="`Telefone fixo`"
+              v-bind:options="{
+                readonly: readOnlyMode,
+                inputMask: '(##) #####-####',
+                outputMask: '###########',
+              }"
+            />
 
-            <v-text-field
+            <v-text-field-simplemask
               v-model='user.phoneMobile'
-              label='Telefone celular'
-              :readonly='readOnlyMode'
-            ></v-text-field>
+              v-bind:label="`Telefone fixo`"
+              v-bind:options="{
+                readonly: readOnlyMode,
+                inputMask: '(##) #####-####',
+                outputMask: '###########',
+              }"
+            />
 
             <v-text-field
               v-model.lazy='user.photo'
@@ -189,21 +199,22 @@
                 v-bind:label='`Cep`'
                 v-bind:readonly="readOnlyMode"
                 v-bind:options='{
-                  outputMask: `#####-###`,
+                  inputMask: `#####-###`,
+                  outputMask: `########`,
                   empty: null,
                   applyAfter: true,
                 }'
               />
               <v-text-field
                 v-model.lazy='address.address'
-                label='Endereço'
+                label='Endereço *'
                 :rules="requiredRules"
                 :readonly='readOnlyMode'
               ></v-text-field>
 
               <v-text-field
                 v-model.lazy='address.number'
-                label='Número'
+                label='Número *'
                 :rules="requiredRules"
                 :readonly='readOnlyMode'
               ></v-text-field>
@@ -222,14 +233,14 @@
 
               <v-text-field
                 v-model.lazy='address.city'
-                label='Cidade'
+                label='Cidade *'
                 :rules="requiredRules"
                 :readonly='readOnlyMode'
               ></v-text-field>
 
               <v-text-field
                 v-model.lazy='address.state'
-                label='Estado'
+                label='Estado *'
                 :rules="requiredRules"
                 :readonly='readOnlyMode'
               ></v-text-field>
