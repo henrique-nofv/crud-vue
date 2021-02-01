@@ -6,12 +6,17 @@
         <v-card-title class="font-weight-regular d-inline-block text-truncate">
           {{user.name}}
         </v-card-title>
+        <v-card-subtitle class="font-weight-regular d-inline-block text-truncate">
+          {{user.cpfCnpj}}
+        </v-card-subtitle>
       </v-list-item-content>
       <v-list-item-avatar
         rounded="10"
         size="80"
         color="grey"
-      ></v-list-item-avatar>
+      >
+      <v-img :src="user.photo.length >= 3 ? user.photo : 'https://ciclesradar.com.br/images/sem_foto.png'"></v-img>
+      </v-list-item-avatar>
     </v-list-item>
   </v-card>
 </template>

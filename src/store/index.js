@@ -5,6 +5,9 @@ import Axios from 'axios';
 
 Vue.use(Vuex);
 
+const jsonBox = 'https://jsonbox.io/';
+const hashBox = 'box_6fb739a95b26f569cee2';
+
 export default new Vuex.Store({
   state: {
     user: {
@@ -66,31 +69,31 @@ export default new Vuex.Store({
     },
   },
   actions: {
-    async getUsers({ commit }) {
-      const response = await Axios.get('https://jsonbox.io/box_6fb739a95b26f569cee2');
+    async getUsers({ commit }, params) {
+      const response = await Axios.get(`${jsonBox}${hashBox}`, { params: params });
 
       commit('setUsers', response.data);
     },
     async getUser({ commit }, id) {
-      const response = await Axios.get(`https://jsonbox.io/box_6fb739a95b26f569cee2/${id}`);
+      const response = await Axios.get(`${jsonBox}${hashBox}/${id}`);
 
       commit('setUser', response.data);
     },
     createUser({ }, user) {
-      return Axios.post('https://jsonbox.io/box_6fb739a95b26f569cee2/', user);
+      return Axios.post(`${jsonBox}${hashBox}`, user);
     },
     deleteUser({ }, { _id }) {
-      return Axios.delete(`https://jsonbox.io/box_6fb739a95b26f569cee2/${_id}`);
+      return Axios.delete(`${jsonBox}${hashBox}/${_id}`);
     },
     updateUser({ }, user) {
-      return Axios.put(`https://jsonbox.io/box_6fb739a95b26f569cee2/${user._id}`, user);
+      return Axios.put(`${jsonBox}${hashBox}/${user._id}`, user);
+    },
+    getPageInfo({ }){
+      return Axios.get(`${jsonBox}_meta/${hashBox}`);
     },
     getAddressByCep({ }, cep) {
       return Axios.get(`https://viacep.com.br/ws/${cep}/json/`)
     },
-  },
-  getters: {
-
   },
   modules: {
   },
